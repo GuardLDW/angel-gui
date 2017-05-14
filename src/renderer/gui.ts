@@ -3,9 +3,13 @@ import * as fs from 'fs';
 
 
 
-export function run() {
+export let run = () => {
+
+    let canvas = document.getElementById("app") as HTMLCanvasElement;
+    let stage = angel.run(canvas);
 
     let projectUserPick = path.resolve(__dirname, "../../config");
+    //let projectUserPick = path.resolve(__dirname, "../../../angel-test-game");
     let configPath = path.join(projectUserPick, "data.config");
     let data:any;
     if (!fs.existsSync(configPath)) {
@@ -20,14 +24,12 @@ export function run() {
         }
     }
 
-    var canvas = document.getElementById("app") as HTMLCanvasElement;
-    //var stage = angel.run(canvas);
 
     Controller.getInstance().createData(data);
     //模拟删除
     Controller.getInstance().deleteData(1);
     var view = new View();
-    //view.show(stage);
+    view.show(stage);
     
 
     
@@ -119,34 +121,46 @@ class Equipment{
     id : number;
     name : string;
     prefixion : string;
-
     content : string;
-
 
     constructor(id : number, name : string, prefixion : string){
 
         this.id = id;
         this.name = name;
         this.prefixion = prefixion;
-        this.content = "装备:" + this.prefixion + "之" + this.name;
+        if(this.prefixion == "无"){
+            
+            this.content = "装备:" + this.name;
+        }else{
+            
+            this.content = "装备:" + this.prefixion + "之" + this.name;
+        }
+
     }
 
 }
 
-class View{
 
+
+class View{
 
     show(stage){
 
         var x = 10;
-        var y = 0;
-        var change = 10;
+        var y = 30;
+        var change = 40;
         
         for(var i = 0; i < Controller.getInstance().equipmentArray.length; i++){
             
             var textField = new angel.TextField();
             textField.text = Controller.getInstance().equipmentArray[i].content;
-            textField.y = y + change;
+            textField.size = 20;
+            textField.y = y + change * i;
+            textField.addEventListener("onclick", function(){
+
+                alert(textField.text);
+
+            }, textField, false);
             stage.addChild(textField);
         }
     }
