@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import * as cp from "child_process";
 
 
 
@@ -7,11 +8,60 @@ export let run = () => {
 
     let canvas = document.getElementById("app") as HTMLCanvasElement;
     let stage = angel.run(canvas);
+    let data : any;
+    let dataa : any;
 
-    let projectUserPick = path.resolve(__dirname, "../../config");
-    //let projectUserPick = path.resolve(__dirname, "../../../angel-test-game");
+    let projectUserPick = path.resolve(__dirname, "../../../angel-gui");
+
+    console.log(projectUserPick);
+    if (!validProject(projectUserPick)) {
+        alert("不是一个有效的Unity项目");
+    }
+    else {
+        let child_process = cp.exec("angel " + 'run ' + projectUserPick);
+        let iframe: HTMLIFrameElement;
+        child_process.stdout.addListener("data", data => {
+            console.log(data.toString());
+            setTimeout(() => {
+                if (data.toString().indexOf("Server listening to") >= 0) {
+                    iframe = document.getElementById("iframe") as HTMLIFrameElement;
+                    iframe.src = "http://localhost:1337/index.html";
+                }
+            }, 500);
+        })
+
+    }
+
+    //输入的是项目路径
+    function validProject(projectUserPick: string) {
+
+        // return true;
+        var ValidCredential = path.join(projectUserPick, "angel.json")
+        //文件存在
+        if (!fs.existsSync(ValidCredential)) {
+            alert("不是一个Unity项目,缺少json文件");
+            return false;
+        }
+        //文件是否合法
+        let dataaContent = fs.readFileSync(ValidCredential, "UTF-8");
+        try {
+            dataa = JSON.parse(dataaContent);
+        }
+        catch (e) {
+            alert("解析JSON文件出现问题");
+        }
+        if (dataa) {
+            let enginedir: string = dataa.engine;
+            if (!enginedir) {
+                alert("不是一个Unity项目")
+                return false;
+            }
+        }
+        return true;
+    }
+
+    let projectUserPick1 = path.resolve(__dirname, "../../config");
     let configPath = path.join(projectUserPick, "data.config");
-    let data:any;
     if (!fs.existsSync(configPath)) {
         alert("该文件夹不是有效路径");
     }else{
@@ -24,6 +74,7 @@ export let run = () => {
         }
     }
 
+    
 
     Controller.getInstance().createData(data);
     //模拟删除
